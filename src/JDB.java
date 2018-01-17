@@ -23,8 +23,8 @@ public class JDB {
         try {
             String dbName = "derbyDB"; // nazwa bazy danych
             conn = DriverManager.getConnection(protocol + dbName
-                    + ";create=false", getProperties());			// połączenie z bazą
-            Server.print("Connected to database " + dbName);		//
+                    + ";create=true", getProperties());			// połączenie z bazą
+            Server.print("Połączono z bazą " + dbName);		//
 			// informacja po pomyślnym połączeniu
             conn.setAutoCommit(false);
 			// wyłączenie autymatycznego zapisu stanu bazy
