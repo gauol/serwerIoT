@@ -199,7 +199,9 @@ public class JDB {
     public String getDataHTML(String tableName) {		// pobieranie danych z tabeli w formacie gotowym dla przeglądarki
         StringBuilder str = new StringBuilder();
         try {
-            ResultSet rs = s.executeQuery(
+            Statement stmt = conn.createStatement();
+            stmt.setMaxRows(50);
+            ResultSet rs = stmt.executeQuery(
                     "SELECT * FROM "+ schemaName + "." + tableName + " ORDER BY rok, miesiac, dzien, Czas");            //(temp float, Czas time, dzien int, miesiac int, rok int)
             while (rs.next()) {
                 String eventDate = rs.getTime(3).toString() + " " + rs.getInt(4) + "-" + rs.getInt(5) + "-" + rs.getInt(6);
