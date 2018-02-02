@@ -147,6 +147,7 @@ public class Main extends JFrame implements ActionListener{
                         possibilities,
                         possibilities[0]);
                 Server.print("Usuwam : " + s);
+                Server.jdb.delateTable(s);
                 break;
         }
     }

@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -58,7 +59,7 @@ public class JDB {
 
     public void createTable(String tableName) {			// metoda do tworzenia tabeli
         try {
-            s.execute("create table " + schemaName + "." + tableName + " (temp1 float, temp2 float, Czas time, dzien int, miesiac int, rok int)");
+            s.execute("create table " + schemaName + "." + tableName + " (temp1 float, temp2 float, Czas TIMESTAMP )");
             Server.print("Created table: " + tableName);
         } catch (SQLException sqlex) {
             printSQLException(sqlex);
@@ -159,17 +160,13 @@ public class JDB {
 
     public void addData(String tableName, float value1, float value2) {	// dodanie do bazy pojedyńczego pomiaru
         try {
-            Czas t = new Czas();
             psInsert = conn.prepareStatement(
-                    "insert into " + schemaName + "." + tableName + " values (?, ?, ?, ?, ?, ?)");    //(temp1 float, temp2 float, Czas time, dzien int, miesiac int, rok int)
+                    "insert into " + schemaName + "." + tableName + " values (?, ?, CURRENT_TIMESTAMP )");    //(temp1 float, temp2 float, Czas time, dzien int, miesiac int, rok int)
             statements.add(psInsert);
 
             psInsert.setFloat(1, value1);
             psInsert.setFloat(2, value2);
-            psInsert.setTime(3, new Time(t.getMsTime()));
-            psInsert.setInt(4, t.getDzien());
-            psInsert.setInt(5, t.getMonth());
-            psInsert.setInt(6, t.getYear());
+            //psInsert.setTime(3, new Timestamp());
             psInsert.executeUpdate();
 
             Server.print("Zapisano odczyt z sensora: " + tableName + " : " + value1 + " : " + value2);
@@ -181,7 +178,7 @@ public class JDB {
     public void getData(String tableName) {		// pobieranie danych z tabeli
         try {
             ResultSet rs = s.executeQuery(
-                    "SELECT * FROM "+ schemaName + "." + tableName + " ORDER BY rok, miesiac, dzien, Czas");            //(temp float, Czas time, dzien int, miesiac int, rok int)
+                    "SELECT * FROM "+ schemaName + "." + tableName + " ORDER BY Czas");            //(temp float, Czas time, dzien int, miesiac int, rok int)
             while (rs.next()) {
                 Server.print(rs.getFloat(1) + " " + rs.getFloat(2) + " : " + rs.getString(3));
             }
@@ -200,12 +197,12 @@ public class JDB {
         StringBuilder str = new StringBuilder();
         try {
             Statement stmt = conn.createStatement();
-            stmt.setMaxRows(50);
+            stmt.setMaxRows(100);
             ResultSet rs = stmt.executeQuery(
-                    "SELECT * FROM "+ schemaName + "." + tableName + " ORDER BY rok, miesiac, dzien, Czas");            //(temp float, Czas time, dzien int, miesiac int, rok int)
+                    "SELECT * FROM "+ schemaName + "." + tableName + " ORDER BY Czas DESC");            //(temp float, Czas time, dzien int, miesiac int, rok int)
             while (rs.next()) {
-                String eventDate = rs.getTime(3).toString() + " " + rs.getInt(4) + "-" + rs.getInt(5) + "-" + rs.getInt(6);
-                str.append( ",\r\n['" + eventDate + "', " + rs.getFloat(1) +", "+rs.getFloat(2) +"]");
+                String eventDate = rs.getTimestamp(3).toLocalDateTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                str.insert(0, "\n,['" + eventDate + "', " + rs.getFloat(1) +", "+rs.getFloat(2) +"]");
             }
 
             if (rs != null) {
